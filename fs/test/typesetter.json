@@ -100,7 +100,7 @@
       "start": 3132,
       "focused": false,
       "output": "/**\n@param {ParagraphProps} paragraph\n@param {p5} p\n@param {Grid} grid \n\n@description takes text and length, and returns overflowed text.\n*/\nlet draw_paragraph = (p, paragraph, grid) => {\n  const is_fn = fn => typeof fn == \"function\"\n\n  //@ts-ignore\n  if (paragraph.x && is_fn(paragraph.x)) paragraph.x = paragraph.x(grid)\n  //@ts-ignore\n  if (paragraph.y && is_fn(paragraph.y)) paragraph.y = paragraph.y(grid)\n  //@ts-ignore\n  if (paragraph.length && is_fn(paragraph.length)) paragraph.length = paragraph.length(grid)\n  //@ts-ignore\n  if (paragraph.height && is_fn(paragraph.height)) paragraph.height = paragraph.height(grid)\n  \n  /**@type Paragraph*/\n  let _paragraph = Object.assign({\n    text: \"\", \n    font_family: \"monospace\",\n    font_weight: 300,\n    x : {px: 10},\n    y : {px: 10},\n    height : {px: 100},\n    length : {px:100},\n    leading : {px: 12},\n    \n    color : p.color(\"black\"),\n    stroke : p.color(\"black\"),\n    font_size: {px: 14},\n    rect : true,\n    hooks: {}\n  }, paragraph)\n\n\n  p.textSize(_paragraph.font_size.px)\n  p.textFont(_paragraph.font_family)\n  p.textWeight(_paragraph.font_weight)\n  \n  /**@type ParagraphState*/\n  let paragraph_state = {\n    vertical_pos: _paragraph.y.px + p.textLeading(),\n    word_count: 0,\n  }\n  \n  if (_paragraph.rect){\n    p.noFill();\n    p.stroke(_paragraph.stroke);\n    p.rect(_paragraph.x.px, _paragraph.y.px, _paragraph.length.px, _paragraph.height.px);\n  }\n  \n  p.noStroke();\n  p.fill(_paragraph.color)\n  let start_length = _paragraph.text.length\n  \n  while (_paragraph.text.length > 0 && paragraph_state.vertical_pos < _paragraph.y.px+_paragraph.height.px) {\n    paragraph_state.word_count = start_length - _paragraph.text.length\n    _paragraph.text = draw_line(\n      p,\n      _paragraph.text,\n      _paragraph.x,\n      {px: paragraph_state.vertical_pos},\n      _paragraph.length,\n      {\n        paragraph: _paragraph,\n        paragraph_state\n      },\n      _paragraph.hooks\n    ).trim()\n    paragraph_state.vertical_pos+=_paragraph.leading.px\n  }\n\n\n\n  return _paragraph.text\n}\n\n/**\n@typedef {{\n  vertical_pos: number,\n  word_count: number,\n}} ParagraphState\n\n@typedef {{\n  line_state: LineState,\n  paragraph_state: ParagraphState,\n  paragraph: Paragraph,\n  p: p5\n}} ParagraphHookProps\n\n@typedef {{ \n  beforeHyphenate?: (props: ParagraphHookProps) => void \n  afterHyphenate?: (props: ParagraphHookProps) => void \n  beforeWord?: (props: ParagraphHookProps) => void \n  afterWord?: (props: ParagraphHookProps) => void \n  beforeLine?: (props: ParagraphHookProps) => void\n  afterLine?: (props: ParagraphHookProps) => void\n}} ParagraphHooks\n\n@typedef {(grid: Grid) => Unit} GridUnit\n\n@typedef {object} Paragraph\n@property {string} text\n@property {Unit} length\n@property {*} font_family\n@property {number} font_weight\n@property {Unit} leading\n@property {Unit} font_size\n@property {Unit} height\n@property {Color} color\n@property {Color} stroke\n@property {Unit} x\n@property {Unit} y\n@property {boolean} rect \n@property {ParagraphHooks} hooks\n\n@typedef {object} ParagraphProps\n@property {string} text\n@property {*=} font_family\n@property {number=} font_weight\n\n@property {Unit=} leading\n@property {Unit=} font_size\n\n@property {(Unit | GridUnit)=} length\n@property {(Unit | GridUnit)=} height\n@property {(Unit | GridUnit)=} x\n@property {(Unit | GridUnit)=} y\n\n@property {Color=} color\n@property {Color=} stroke\n\n@property {boolean=} rect \n@property {ParagraphHooks=} hooks\n\n*/\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-      "cursor": 0,
+      "cursor": 732,
       "active": false,
       "focus": false,
       "drag_x": 47.87092010331711,
@@ -120,7 +120,7 @@
       "drag_h": 660.2566867601192,
       "focused": false,
       "output": "/**\n@typedef {(\"inch\" | \"pica\" | \"point\" | \"em\" | \"pixel\")} UnitType\n@typedef {{\n  unit?: UnitType,\n  value?: number,\n  px: number\n}} Unit\n\n*/\nclass Scale{\n  constructor(scale = 1, viewport = 1){\n    this.dpi = window.devicePixelRatio * 96\n    this.scale = scale / this.dpi\n  }\n\n  /**\n  @param {Unit} unit1 \n  @param {Unit} unit2 \n  */\n  add(unit1, unit2){\n    return this.px_raw( unit1.px + unit2.px )\n  }\n\n  /**\n  @param {number} value \n  @returns {Unit} \n  */\n  em(value){\n    return {\n      unit:\"em\",\n      value,\n      px: this.inch(value/6).px\n    }\n  }\n\n  /**\n  @param {number} value \n  @returns {Unit} \n  */\n  px(value){\n    return {\n      unit: \"pixel\",\n      value,\n      px: value*this.scale\n    }\n  }\n\n  /**\n  @param {number} value \n  @returns {Unit} \n  */\n  px_raw(value){\n    return {\n      unit: \"pixel\",\n      value,\n      px: value\n    }\n  }\n\n  pixel(value){return this.px(value)}\n\n  /**\n  @param {number} value \n  @returns {Unit} \n  */\n  inch(value){\n    return { \n      unit: \"inch\",\n      value,\n      px: value * this.dpi * this.scale\n    }\n  }\n\n  /**\n  @param {number} value \n  @returns {Unit} \n  */\n  pica(value){ return this.em(value) }\n  picas(value){return this.pica(value)}\n\n\n  /**\n  @param {number} value \n  @returns {Unit} \n  */\n  point(value){\n    return {\n      unit: \"point\",\n      value,\n      px: this.pica(value).px / 12\n    }\n  }\n  \n}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-      "cursor": 0
+      "cursor": 561
     },
     {
       "type": "code",
@@ -148,7 +148,7 @@
       "drag_h": 711.5880025872877,
       "focused": false,
       "output": "/** \n@typedef {{\n  margin: {\n    top: Unit,\n    bottom: Unit,\n    inside: Unit,\n    outside: Unit,\n  }\n\n  columns: number,\n  gutter: Unit,\n  \n  hanglines: Unit[]\n  page_width: Unit,\n  page_height: Unit,\n}} GridProps\n*/\nclass Grid {\n  /**\n  @param {GridProps} props\n  @param {Scale} s\n  */\n  constructor(props, s){\n    this.props = props\n    this.s = s\n  }\n\n  set_margin(margin){\n    this.props.margin = margin\n  }\n  \n  /**@returns {{x:Unit, y:Unit, w:Unit, h: Unit}[]}*/\n  recto_columns  ()  {\n    /**@type {{x:Unit, y:Unit, w:Unit, h: Unit}[]}*/\n    const cols = []\n\n    for(let i = 0; i < this.props.columns; i++){\n      const y = this.props.margin.top\n      const w = this.column_width()\n      \n      // outside + gutters + size\n      const x = s.px_raw(this.half_page().x.px + this.props.margin.inside.px + i * this.props.gutter.px + i * this.column_width().px);\n      const h = s.px_raw(this.props.page_height.px - (this.props.margin.top.px + this.props.margin.bottom.px))\n\n      cols.push({x, y, w, h })\n    }\n\n    return cols\n  }\n  \n  /**@returns {{x:Unit, y:Unit, w:Unit, h: Unit}[]}*/\n  verso_columns  ()  {\n    /**@type {{x:Unit, y:Unit, w:Unit, h: Unit}[]}*/\n    const cols = []\n\n    for(let i = 0; i < this.props.columns; i++){\n      const y = this.props.margin.top\n      const w = this.column_width()\n      \n      // outside + gutters + size\n      const x = s.px_raw(this.props.margin.outside.px + i * this.props.gutter.px + i * this.column_width().px);\n      const h = s.px_raw(this.props.page_height.px - (this.props.margin.top.px + this.props.margin.bottom.px))\n\n      cols.push({x, y, w, h })\n    }\n\n    return cols\n  }\n  \n  columns () {return  [this.verso_columns(), this.recto_columns()]}\n\n  /**@returns {Unit}*/\n  column_width (n = 1) {\n    let w = this.half_page().x.px - (this.props.margin.inside.px + this.props.margin.outside.px);\n    let g = (n - 1) * this.props.gutter.px\n    return s.px_raw(((w - (this.props.gutter.px * (this.props.columns - 1))) / this.props.columns)*n + g ) ;\n  }\n  \n  /**@returns {{x: Unit, y: Unit}}*/\n  half_page () {\n    return {\n      x: s.px_raw(this.props.page_width.px / 2),\n      y: s.px_raw(this.props.page_height.px / 2)\n    }\n  }\n}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-      "cursor": 0
+      "cursor": 17
     },
     {
       "type": "code",
@@ -216,14 +216,14 @@
       "drag_w": 600,
       "drag_h": 940,
       "focused": false,
-      "output": "/**@type {p5}*/\nlet p\nlet oracle\n\nlet dpi = 150 \nlet viewport =1.2\nlet s = new Scale(dpi,viewport)\nlet mx = 0, my = 0\nlet grid = new Grid({\n  margin: {\n    top: s.em(14),\n    bottom: s.em(4),\n    inside: s.em(1),\n    outside: s.em(4),\n  },\n\n  columns: 8,\n  gutter: s.point(6),\n  hanglines: [],\n  page_width: s.inch(11),\n  page_height: s.inch(8.5),\n}, s)\n/**\n@typedef {{frames: ParagraphProps[], text: string }} LinkedFrames\n*/\n\n\nlet preload = (p) => {\n  oracle = p.loadFont(\"/fs/fonts/ABCOracle.ttf\")\n}\n\nlet draw = (p) => {\n    p.background(\"white\");\n    p.textWeight(600)\n    p.textFont(oracle)\n\n  \n   mx = s.px(p.mouseX).px / viewport\n   my = s.px(p.mouseY).px / viewport\n  \n    p.rect(mx, my,10,10)\n\n    book.draw(p)\n    // book.draw_verso(p)\n    // book.seek(0)\n    // book.draw_recto(p)\n}\n\nsetTimeout(() => {\n  let el = document.querySelector(\".q5\")\n  p = new p5('instance', el);\n\n  p.setup = () => {\n    p.createCanvas(s.inch(11).px, s.inch(8.5).px);\n    el.style.transform = \"scale(\"+(1/s.scale)*viewport+\")\"\n  };\n\n  \n  p.draw = () => {\n    draw(p)\n    //p.noLoop()\n  };\n\n  p.mousePressed = () => {\n    //p.save(\"test.png\")\n  }\n  \n}, 200)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-      "cursor": 0,
+      "output": "/**@type {p5}*/\nlet p\nlet oracle\n\nlet dpi = 150 \nlet viewport =1.2\nlet s = new Scale(dpi,viewport)\nlet mx = 0, my = 0\n\nlet grid = new Grid({\n  margin: {\n    top: s.em(14),\n    bottom: s.em(4),\n    inside: s.em(1),\n    outside: s.em(4),\n  },\n\n  columns: 8,\n  gutter: s.point(6),\n  hanglines: [],\n  page_width: s.inch(11),\n  page_height: s.inch(8.5),\n}, s)\n\nlet preload = (p) => {\n  oracle = p.loadFont(\"/fs/fonts/ABCOracle.ttf\")\n}\n\nlet draw = (p) => {\n    p.background(\"white\");\n    p.textWeight(600)\n    p.textFont(oracle)\n\n  \n   mx = s.px(p.mouseX).px / viewport\n   my = s.px(p.mouseY).px / viewport\n  \n    p.rect(mx, my,10,10)\n\n    book.draw(p)\n    // book.draw_verso(p)\n    // book.seek(0)\n    // book.draw_recto(p)\n}\n\nsetTimeout(() => {\n  let el = document.querySelector(\".q5\")\n  p = new p5('instance', el);\n\n  p.setup = () => {\n    p.createCanvas(s.inch(11).px, s.inch(8.5).px);\n    el.style.transform = \"scale(\"+(1/s.scale)*viewport+\")\"\n  };\n\n  \n  p.draw = () => {\n    draw(p)\n    //p.noLoop()\n  };\n\n  p.mousePressed = () => {\n    //p.save(\"test.png\")\n  }\n  \n}, 200)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+      "cursor": 33,
       "focus": false
     },
     {
       "type": "code",
       "id": "l5qljd",
-      "start": 20172,
+      "start": 20099,
       "drag_x": 2079.2827973164467,
       "drag_y": 2746.9379420904133,
       "drag_w": 600,
@@ -239,7 +239,7 @@
       "id": "t5dwtp",
       "active": false,
       "focus": false,
-      "start": 20580,
+      "start": 20507,
       "drag_x": 2777.8393135157726,
       "drag_y": 2733.6514192590917,
       "drag_w": 1088.3348404050394,
@@ -252,7 +252,7 @@
       "type": "code",
       "id": "tr577c",
       "active": false,
-      "start": 21671,
+      "start": 21598,
       "drag_x": 3920.652230271874,
       "drag_y": 2733.6514192590917,
       "drag_w": 600,
@@ -267,7 +267,7 @@
       "id": "ef2ep",
       "active": false,
       "focus": false,
-      "start": 23112,
+      "start": 23039,
       "drag_x": 4544.803274511988,
       "drag_y": 2736.6987486074763,
       "drag_w": 600,
@@ -281,21 +281,21 @@
       "id": "zjnw67",
       "active": true,
       "focus": true,
-      "start": 24130,
+      "start": 24057,
       "drag_x": 3908.4992981399796,
       "drag_y": 3586.8694337529228,
       "drag_w": 378.62126966227686,
-      "drag_h": 947.6210697827888,
+      "drag_h": 1076.1734654180966,
       "focused": false,
-      "output": "let graphic = () => {\n  let r = Math.random()*12\n  let f = Math.random()*28\n  let at = Math.random() + .5\n  let ot = Math.random()\n  return {\n  draw: (p, props) => {\n    p.noFill()\n    p.stroke(0,0,255)\n    \n    p.strokeWeight(1)\n    p.arc(s.em(18).px,\n             s.em(f + r).px,\n             s.em(r*2 + 8).px,\n             s.em(r*2 + 8).px,\n             ot, at\n            )\n    \n    p.strokeWeight(.5)\n    p.circle(s.em(8).px,\n             s.em(18).px,\n             s.em(r*at).px,\n            )\n  }\n}}\n\nlet book = new Book(\n  [\n   new Spread(grid, s, [linked]),\n   //1. contexts\n   spread_from_block(0, [graphic()]),\n    \n   //2. in vs through\n   spread_from_block(1, [graphic()]),\n    \n   //3. ground-up\n   spread_from_block(2, [graphic()]),\n\n   //4. nouns and verbs\n   spread_from_block(10, [graphic()]),\n    \n   //5. labour:\n   // example: video\n   spread_from_block(5, [graphic()]),\n    \n   //6. feedback and change:\n   spread_from_block(6, [graphic()]),\n   \n   //7. process parallels\n   spread_from_block(9, [graphic()]),\n    \n   //8. where does meaning come from\n   spread_from_block(8, [graphic()]),\n    \n   //9. reconfiguration\n   spread_from_block(11, [graphic()]),\n    \n   // spread_from_block(7, [graphic()]),\n   // spread_from_block(4, [graphic()]),\n  ])\n\nbook.seek(3)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-      "cursor": 1282
+      "output": "let graphic = () => {\n  let r = Math.random()*12\n  let f = Math.random()*28\n  let at = Math.random() + .5\n  let ot = Math.random()\n  return {\n  draw: (p, props) => {\n    p.noFill()\n    p.stroke(0,0,255)\n    \n    p.strokeWeight(1)\n    p.arc(s.em(18).px,\n             s.em(f + r).px,\n             s.em(r*2 + 8).px,\n             s.em(r*2 + 8).px,\n             ot, at\n            )\n    \n    p.strokeWeight(.5)\n    p.circle(s.em(8).px,\n             s.em(18).px,\n             s.em(r*at).px,\n            )\n  }\n}}\n\nlet book = new Book(\n  [\n   new Spread(grid, s, [linked]),\n   //1. contexts\n   spread_from_block(0, [graphic()]),\n    \n   //2. in vs through\n   spread_from_block(1, [graphic()]),\n    \n   //3. ground-up\n   spread_from_block(2, [graphic()]),\n\n   //4. nouns and verbs\n   spread_from_block(10, [graphic()]),\n    \n   //5. labour:\n   // example: video\n   spread_from_block(5, [graphic()]),\n    \n   //6. feedback and change:\n   spread_from_block(6, [graphic()]),\n   \n   //7. process parallels\n   spread_from_block(9, [graphic()]),\n    \n   //8. where does meaning come from\n   spread_from_block(8, [graphic()]),\n    \n   //9. reconfiguration\n   spread_from_block(11, [graphic()]),\n\n   // -------------\n   // predatory software\n   // practices\n   // + sustainability \n   // -------------\n    \n   // spread_from_block(7, [graphic()]),\n   // spread_from_block(4, [graphic()]),\n  ])\n\nbook.seek(5)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+      "cursor": 1288
     },
     {
       "type": "video-component",
       "id": "z9me7s",
       "active": false,
       "focus": false,
-      "start": 25434,
+      "start": 25467,
       "drag_x": 6460.4517332504265,
       "drag_y": 2461.4570184983695,
       "drag_w": 750.8470028338807,
@@ -308,7 +308,7 @@
       "id": "im0wm9",
       "active": false,
       "focus": false,
-      "start": 25434,
+      "start": 25467,
       "drag_x": 7216.416639225976,
       "drag_y": 2453.3738452789107,
       "drag_w": 715.4084680624484,
@@ -321,7 +321,7 @@
       "id": "235qr",
       "active": false,
       "focus": false,
-      "start": 25434,
+      "start": 25467,
       "drag_x": 8024.173247134422,
       "drag_y": 2409.3156460523655,
       "drag_w": 600,
@@ -334,7 +334,7 @@
       "id": "o7q9z9",
       "active": false,
       "focus": false,
-      "start": 25434,
+      "start": 25467,
       "drag_x": 5958.478468899521,
       "drag_y": 1091.354066985647,
       "drag_w": 1665.2172414932327,
@@ -347,7 +347,7 @@
       "id": "0vkkd2",
       "active": false,
       "focus": false,
-      "start": 25434,
+      "start": 25467,
       "drag_x": 7550.612440191385,
       "drag_y": 1093.315789473681,
       "drag_w": 1450.6523743954374,
@@ -359,9 +359,9 @@
   "output": "",
   "properties": {
     "panzoom": {
-      "initialX": -3304.499619334266,
-      "initialY": -3028.4583115703463,
-      "initialZoom": 0.8582577003226384
+      "initialX": -2686.7774595400474,
+      "initialY": -2460.614803764829,
+      "initialZoom": 0.7001036391054322
     },
     "buffer": [
       20,
